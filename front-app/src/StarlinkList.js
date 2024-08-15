@@ -1,49 +1,92 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import {MapContainer} from 'react-leaflet';
+
+import {MapContainer, Marker, Popup, TileLayer} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 const satIcon = new L.icon({
-        iconUrl: 'satelite.png',
+        iconUrl: 'satellite.png',
         iconSize: [25,25]
-})
+});
 
 
-function StarlinkList(){
-    
+function StarlinkList() {
+
     const [starlinks, setStarlinks] = useState([]);
-    const [] = useState() 
-    const [] = useState(true) 
+    const [page,setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(true);
+    const [textButton, setTextButton] = useState("Carregar mais");
 
-    const fetchStarlinks = async () => {
-    const response = axios.post('https://api.spacexdata.com/v4/starlink/query', {
-        "query": {},
-        "options": { limit: 10 }
-    });
-     console.log(response.data);
-     setStarlinks(response.data.docs);
-    } 
-useEffect(()=> {
-    fetchStarlinks();
-        }, []);
+
+    const fetchStarlinks = async (page) => {
+
+        try {
+            const response = await axios.post('https://api.spacexdata.com/v4/starlink/query', {
+                "query": {},
+                "options": { page: page, limit: 100 }
+            });
+            console.log(response.data);
+            setStarlinks(response.data.docs);
+		    setHasNextPage(response.data.hasNextPage);
+        } catch (error) {
+            console.log('Erro ao obter os dados...');
+        }
+    }
+
+    //criar botão loadLess
+
+    const loadMore = () => {
+        if (hasNextPage) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            fetchStarlinks(nextPage);
+        } else {
+            setTextButton('Você chegou na última página');
+        }
+    };
+
+    // const loadPrevious = (){
+    //     if(page > 1){
+    //         setPage(nextPage)
+    //     }
+    // }
+
+    useEffect(() => {
+        fetchStarlinks(page);
+    }, []);
+
 
     return (
-    <>
-    <h4>Meu componente Starlink</h4>
-    <ul>
-        <li>Satelite 1</li>
-        <li>Satelite 2</li>
-        {starlinks.map((sat) => (
-            <li key={sat.id}>{sat.id}</li>
-        ))
-        }
-    </ul>
- <MapContainer />
+        <>
+            <h4>Meu componente starlink</h4>
+            
+            <MapContainer center={[0,0]} zoom={2} style={{height: '80vh', width:'100%'}}>
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                {starlinks
+                    .filter((sat) => sat.latitude !== null && sat.longitude !== null)
+                    .map((sat) => (
+                        <Marker key={sat.id} position={[sat.latitude,sat.longitude]} icon={satIcon}> 
+                            <Popup>
+                                {sat.spaceTrack.OBJECT_NAME}    
+                            </Popup>                            
+                        </Marker>
+                    )
+                )
+                }
+                
+            </MapContainer>
 
-    </>
+            <div style={{textAlign: 'center', margin:'20px 0'}}>
+                <button onClick={loadMore}>
+                    {textButton}
+                </button>
+                {/* <button onClick={loadPrevious}>
+                    Anterior
+                </button> */}
+            </div>
+        </>
     );
-
 }
 
 export default StarlinkList;
