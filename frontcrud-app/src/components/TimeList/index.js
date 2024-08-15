@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import styles from './TimeList.module.css';
 import axios from 'axios';
 import AddTime from '../AddTime';
+import EditTime from '../EditTime';
+import { Toaster, toast } from 'sonner';
 
 const headers = {
     "ngrok-skip-browser-warning": "123"
@@ -10,6 +12,7 @@ const headers = {
 function TimeList(){
     
     const[times, setTimes] = useState([]);
+    const [editTime, setEdit] = useState(null);
 
     const fetchTimes = async () => {
         const response = await axios.get('https://146d-191-165-254-55.ngrok-free.app/times', {headers: headers }
@@ -32,6 +35,10 @@ function TimeList(){
         fetchTimes();
     }
 
+    const handleEdit = (time) =>{
+        setEdit(time)
+    }
+
     useEffect(() => {
         fetchTimes();
     },[]);
@@ -39,7 +46,9 @@ function TimeList(){
     return(
         <div className={styles.container}>
             <h2>Tabela de Times</h2>
-            <AddTime onTimeAdded={handleTimeAdded}/>
+            
+            {editTime ? (<EditTime onTimeUpdated={handleEdit}/>) : (<AddTime onTimeAdded={handleTimeAdded}/>)} 
+
             <table>
                 <thead>
                     <tr>
@@ -56,6 +65,7 @@ function TimeList(){
                             <td>{time.ano_fundacao}</td>
                             <td>
                                 <button onClick={()=> handleDelete(time.id)}>Deletar</button>
+                                <button onClick={()=> handleEdit(time)}>Editar</button>
                             </td>
                         </tr>
                    </tbody>

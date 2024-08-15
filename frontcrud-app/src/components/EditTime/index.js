@@ -1,33 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "sonner";
 
 const headers = {
     "ngrok-skip-browser-warning": "123"
 }
 
-function AddTime({onTimeAdded}){
+function EditTime({time, onUpdated}){
     
     const [nome, setNome] = useState('');
+
+    useEffect(() => {
+        if (time){
+            setNome(time.nome)
+        } 
+    },[time])
     
     //chamar API com o método POST
     //Passar o nome como Parâmetro
     
     const handleSubmmit = async (e) => {
+        console.log(time)
         e.preventDefault();
-        const novoTime = {
+        const editTime = {
             nome
         }
 
-        const response = await axios.post(
-            'https://146d-191-165-254-55.ngrok-free.app/times', novoTime, {
+        const response = await axios.put(
+            `https://146d-191-165-254-55.ngrok-free.app/times/${time.id}`, editTime, {
                 headers:headers
             }
         ); 
         console.log(response);
         setNome('');
-        toast.success('Novo time criado')
-        onTimeAdded(response.data)
+        onUpdated(response.data)
         //recarregar a listagem de times
     }
 
@@ -36,10 +41,10 @@ function AddTime({onTimeAdded}){
             <form onSubmit={handleSubmmit}>
                 <label>Nome: </label>
                 <input type="text" value={nome} onChange={(e) => setNome(e.target.value)}></input>
-                <button type="submit">Adicionar Time</button>
+                <button type="submit">Editar Time</button>
             </form>
         </div>
     );
 }
 
-export default AddTime;
+export default EditTime;

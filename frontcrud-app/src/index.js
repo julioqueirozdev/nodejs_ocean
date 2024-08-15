@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import TimeList from './components/TimeList';
 import reportWebVitals from './reportWebVitals';
+import { Toaster } from 'sonner';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <>
+    <Toaster richColors/>
     <h2>CRUD de Times de Futebol</h2>
     <TimeList />
     </>
